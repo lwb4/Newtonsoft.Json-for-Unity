@@ -1,0 +1,164 @@
+>> Starting applejag/newtonsoft.json-for-unity.package-builder:v3
+$container = docker run -dit --rm `
+    -v /Users/lincolnbergeson/Workspace/Newtonsoft.Json-for-Unity:/root/repo `
+    -e SCRIPTS=/root/repo/ci/scripts `
+    -e BUILD_SOLUTION=/root/repo/Src/Newtonsoft.Json/Newtonsoft.Json.csproj `
+    -e BUILD_DESTINATION_BASE=/root/repo/Src/Newtonsoft.Json-for-Unity/Plugins/ `
+    -e BUILD_DESTINATION= `
+    -e BUILD_CONFIGURATION=Release `
+    -e BUILD_ADDITIONAL_CONSTANTS=;SIGNING `
+    -e BASH_ENV=/root/.bashrc `
+    applejag/newtonsoft.json-for-unity.package-builder:v3
+>> Enable permissions on scripts
+chmod +x $SCRIPTS/**.sh -v
+mode of '/root/repo/ci/scripts/build.sh' retained as 0755 (rwxr-xr-x)
+mode of '/root/repo/ci/scripts/build_setup_variables.sh' retained as 0755 (rwxr-xr-x)
+mode of '/root/repo/ci/scripts/check_deploy_ready.sh' retained as 0755 (rwxr-xr-x)
+mode of '/root/repo/ci/scripts/deploy_git.sh' retained as 0755 (rwxr-xr-x)
+mode of '/root/repo/ci/scripts/generate_metafiles.sh' retained as 0755 (rwxr-xr-x)
+mode of '/root/repo/ci/scripts/get_attr_version.sh' retained as 0755 (rwxr-xr-x)
+mode of '/root/repo/ci/scripts/get_dll_version.sh' retained as 0755 (rwxr-xr-x)
+mode of '/root/repo/ci/scripts/get_framework_from_build.sh' retained as 0755 (rwxr-xr-x)
+mode of '/root/repo/ci/scripts/get_json_version.sh' retained as 0755 (rwxr-xr-x)
+mode of '/root/repo/ci/scripts/git_login.sh' retained as 0755 (rwxr-xr-x)
+mode of '/root/repo/ci/scripts/nunit2junit.sh' retained as 0755 (rwxr-xr-x)
+mode of '/root/repo/ci/scripts/unity_downgrade_asmdef.sh' retained as 0755 (rwxr-xr-x)
+mode of '/root/repo/ci/scripts/unity_login.sh' retained as 0755 (rwxr-xr-x)
+mode of '/root/repo/ci/scripts/unity_restore_deps.sh' retained as 0755 (rwxr-xr-x)
+mode of '/root/repo/ci/scripts/unity_test.sh' retained as 0755 (rwxr-xr-x)
+
+
+>> Setup variables
+            env() {
+                echo "export '$1=$2'" >> $BASH_ENV
+                echo "$1='$2'"
+                export "$1=$2"
+            }
+            echo ">>> OBTAINING VERSION FROM $(pwd)/ci/version.json"
+            env VERSION "$($SCRIPTS/get_json_version.sh ./ci/version.json FULL)"
+            env VERSION_SUFFIX "$($SCRIPTS/get_json_version.sh ./ci/version.json SUFFIX)"
+            env VERSION_JSON_NET "$($SCRIPTS/get_json_version.sh ./ci/version.json JSON_NET)"
+            env VERSION_ASSEMBLY "$($SCRIPTS/get_json_version.sh ./ci/version.json ASSEMBLY)"
+            echo
+
+            echo ">>> UPDATING VERSION IN $(pwd)/Src/Newtonsoft.Json-for-Unity/package.json"
+            echo "BEFORE:"
+            echo ".version=$(jq ".version" Src/Newtonsoft.Json-for-Unity/package.json)"
+            echo ".displayName=$(jq ".displayName" Src/Newtonsoft.Json-for-Unity/package.json)"
+            echo "$(jq ".version=\"$VERSION\" | .displayName=\"Json.NET $VERSION_JSON_NET for Unity\"" Src/Newtonsoft.Json-for-Unity/package.json)" > Src/Newtonsoft.Json-for-Unity/package.json
+            echo "AFTER:"
+            echo ".version=$(jq ".version" Src/Newtonsoft.Json-for-Unity/package.json)"
+            echo ".displayName=$(jq ".displayName" Src/Newtonsoft.Json-for-Unity/package.json)"
+>>> OBTAINING VERSION FROM /root/repo/ci/version.json
+VERSION='13.0.102'
+VERSION_SUFFIX='r02'
+VERSION_JSON_NET='13.0.1'
+VERSION_ASSEMBLY='13.0.0.0'
+
+>>> UPDATING VERSION IN /root/repo/Src/Newtonsoft.Json-for-Unity/package.json
+BEFORE:
+.version="13.0.102"
+.displayName="Json.NET 13.0.1 for Unity"
+AFTER:
+.version="13.0.102"
+.displayName="Json.NET 13.0.1 for Unity"
+
+
+>> NuGet restore for build 'AOT'
+dotnet restore "$BUILD_SOLUTION" -p:UnityBuild=AOT
+  Determining projects to restore...
+  Restored /root/repo/Src/Newtonsoft.Json/Newtonsoft.Json.csproj (in 3.53 sec).
+
+
+>> Build 'AOT'
+            mkdir -p Temp/Build
+            rm -rf Temp/Build/*
+            BUILD_DESTINATION="$(pwd)/Temp/Build" $SCRIPTS/build.sh AOT
+            BUILD_DESTINATION=${BUILD_DESTINATION:-"${BUILD_DESTINATION_BASE:?"Build output path required."}/Newtonsoft.Json AOT"}
+            mkdir -vp "$BUILD_DESTINATION"
+            cp -fvrt "$BUILD_DESTINATION" $(pwd)/Temp/Build/*
+############
+/root/repo/ci/scripts/build.sh: BUILDING PROJECT '/root/repo/Src/Newtonsoft.Json/Newtonsoft.Json.csproj'
+/root/repo/ci/scripts/build.sh: BUILD 'AOT' (netstandard2.0, Release)
+/root/repo/ci/scripts/build.sh: OUTPUT '/root/repo/Temp/Build'
+/root/repo/ci/scripts/build.sh: ADDITIONAL CONSTANTS ';SIGNING'
+############
+
+Microsoft (R) Build Engine version 16.9.0+57a23d249 for .NET
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+/root/repo/Src/Newtonsoft.Json/Utilities/AotHelper.cs(88,61): warning CS8600: Converting null literal or possible null value to non-nullable type. [/root/repo/Src/Newtonsoft.Json/Newtonsoft.Json.csproj]
+/root/repo/Src/Newtonsoft.Json/Utilities/AotHelper.cs(88,61): warning CS8625: Cannot convert null literal to non-nullable reference type. [/root/repo/Src/Newtonsoft.Json/Newtonsoft.Json.csproj]
+/root/repo/Src/Newtonsoft.Json/Utilities/AotHelper.cs(89,61): warning CS8600: Converting null literal or possible null value to non-nullable type. [/root/repo/Src/Newtonsoft.Json/Newtonsoft.Json.csproj]
+/root/repo/Src/Newtonsoft.Json/Utilities/AotHelper.cs(89,61): warning CS8625: Cannot convert null literal to non-nullable reference type. [/root/repo/Src/Newtonsoft.Json/Newtonsoft.Json.csproj]
+/root/repo/Src/Newtonsoft.Json/Utilities/AotHelper.cs(90,95): warning CS8600: Converting null literal or possible null value to non-nullable type. [/root/repo/Src/Newtonsoft.Json/Newtonsoft.Json.csproj]
+/root/repo/Src/Newtonsoft.Json/Utilities/AotHelper.cs(90,95): warning CS8625: Cannot convert null literal to non-nullable reference type. [/root/repo/Src/Newtonsoft.Json/Newtonsoft.Json.csproj]
+  Newtonsoft.Json -> /root/repo/Temp/Build/Newtonsoft.Json.dll
+
+############
+/root/repo/ci/scripts/build.sh: DONE: BUILDING PROJECT '/root/repo/Src/Newtonsoft.Json/Newtonsoft.Json.csproj'
+/root/repo/ci/scripts/build.sh: DONE: BUILD 'AOT' (netstandard2.0, Release)
+/root/repo/ci/scripts/build.sh: DONE: OUTPUT '/root/repo/Temp/Build'
+/root/repo/ci/scripts/build.sh: ADDITIONAL CONSTANTS ';SIGNING'
+############
+'/root/repo/Temp/Build/Newtonsoft.Json.deps.json' -> '/root/repo/Src/Newtonsoft.Json-for-Unity/Plugins//Newtonsoft.Json AOT/Newtonsoft.Json.deps.json'
+'/root/repo/Temp/Build/Newtonsoft.Json.dll' -> '/root/repo/Src/Newtonsoft.Json-for-Unity/Plugins//Newtonsoft.Json AOT/Newtonsoft.Json.dll'
+'/root/repo/Temp/Build/Newtonsoft.Json.pdb' -> '/root/repo/Src/Newtonsoft.Json-for-Unity/Plugins//Newtonsoft.Json AOT/Newtonsoft.Json.pdb'
+'/root/repo/Temp/Build/Newtonsoft.Json.xml' -> '/root/repo/Src/Newtonsoft.Json-for-Unity/Plugins//Newtonsoft.Json AOT/Newtonsoft.Json.xml'
+
+
+>> NuGet restore for build 'Editor'
+dotnet restore "$BUILD_SOLUTION" -p:UnityBuild=Editor
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+
+
+>> Build 'Editor'
+            mkdir -p Temp/Build
+            rm -rf Temp/Build/*
+            BUILD_DESTINATION="$(pwd)/Temp/Build" $SCRIPTS/build.sh Editor
+            BUILD_DESTINATION=${BUILD_DESTINATION:-"${BUILD_DESTINATION_BASE:?"Build output path required."}/Newtonsoft.Json Editor"}
+            mkdir -vp "$BUILD_DESTINATION"
+            cp -fvrt "$BUILD_DESTINATION" $(pwd)/Temp/Build/*
+############
+/root/repo/ci/scripts/build.sh: BUILDING PROJECT '/root/repo/Src/Newtonsoft.Json/Newtonsoft.Json.csproj'
+/root/repo/ci/scripts/build.sh: BUILD 'Editor' (netstandard2.0, Release)
+/root/repo/ci/scripts/build.sh: OUTPUT '/root/repo/Temp/Build'
+/root/repo/ci/scripts/build.sh: ADDITIONAL CONSTANTS ';SIGNING'
+############
+
+Microsoft (R) Build Engine version 16.9.0+57a23d249 for .NET
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+/root/repo/Src/Newtonsoft.Json/Utilities/AotHelper.cs(88,61): warning CS8600: Converting null literal or possible null value to non-nullable type. [/root/repo/Src/Newtonsoft.Json/Newtonsoft.Json.csproj]
+/root/repo/Src/Newtonsoft.Json/Utilities/AotHelper.cs(88,61): warning CS8625: Cannot convert null literal to non-nullable reference type. [/root/repo/Src/Newtonsoft.Json/Newtonsoft.Json.csproj]
+/root/repo/Src/Newtonsoft.Json/Utilities/AotHelper.cs(89,61): warning CS8600: Converting null literal or possible null value to non-nullable type. [/root/repo/Src/Newtonsoft.Json/Newtonsoft.Json.csproj]
+/root/repo/Src/Newtonsoft.Json/Utilities/AotHelper.cs(89,61): warning CS8625: Cannot convert null literal to non-nullable reference type. [/root/repo/Src/Newtonsoft.Json/Newtonsoft.Json.csproj]
+/root/repo/Src/Newtonsoft.Json/Utilities/AotHelper.cs(90,95): warning CS8600: Converting null literal or possible null value to non-nullable type. [/root/repo/Src/Newtonsoft.Json/Newtonsoft.Json.csproj]
+/root/repo/Src/Newtonsoft.Json/Utilities/AotHelper.cs(90,95): warning CS8625: Cannot convert null literal to non-nullable reference type. [/root/repo/Src/Newtonsoft.Json/Newtonsoft.Json.csproj]
+  Newtonsoft.Json -> /root/repo/Temp/Build/Newtonsoft.Json.dll
+
+############
+/root/repo/ci/scripts/build.sh: DONE: BUILDING PROJECT '/root/repo/Src/Newtonsoft.Json/Newtonsoft.Json.csproj'
+/root/repo/ci/scripts/build.sh: DONE: BUILD 'Editor' (netstandard2.0, Release)
+/root/repo/ci/scripts/build.sh: DONE: OUTPUT '/root/repo/Temp/Build'
+/root/repo/ci/scripts/build.sh: ADDITIONAL CONSTANTS ';SIGNING'
+############
+'/root/repo/Temp/Build/Newtonsoft.Json.deps.json' -> '/root/repo/Src/Newtonsoft.Json-for-Unity/Plugins//Newtonsoft.Json Editor/Newtonsoft.Json.deps.json'
+'/root/repo/Temp/Build/Newtonsoft.Json.dll' -> '/root/repo/Src/Newtonsoft.Json-for-Unity/Plugins//Newtonsoft.Json Editor/Newtonsoft.Json.dll'
+'/root/repo/Temp/Build/Newtonsoft.Json.pdb' -> '/root/repo/Src/Newtonsoft.Json-for-Unity/Plugins//Newtonsoft.Json Editor/Newtonsoft.Json.pdb'
+'/root/repo/Temp/Build/Newtonsoft.Json.xml' -> '/root/repo/Src/Newtonsoft.Json-for-Unity/Plugins//Newtonsoft.Json Editor/Newtonsoft.Json.xml'
+
+
+>> Fix meta files
+$SCRIPTS/generate_metafiles.sh $BUILD_DESTINATION_BASE
+>>> Generate .meta files
+<<< Generated 0 meta files.
+<<< Removed 0 orphaned meta files.
+
+
+>> Done!
+>> Stopping 8f0e063c7cd242f2da3cd05baa0eac4f48c7df995a5f3432bdf8b7c70f94d286
+
+Full script completed in: 17,540 ms
+
